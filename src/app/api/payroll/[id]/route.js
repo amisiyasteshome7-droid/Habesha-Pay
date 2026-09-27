@@ -68,6 +68,8 @@ function formatPayslip(slip, employee) {
 
 export async function GET(request, { params }) {
   try {
+    const { id } = await params;
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -80,7 +82,7 @@ export async function GET(request, { params }) {
     await connectDB();
 
     const run = await PayrollRun.findOne({
-      _id: params.id,
+      _id: id,
       companyId: user.companyId,
     }).lean();
 
@@ -110,18 +112,14 @@ export async function GET(request, { params }) {
     const employeeMap = {};
 
     for (const employee of employees) {
-      employeeMap[String(employee._id)] =
-        employee;
+      employeeMap[String(employee._id)] = employee;
     }
 
-    const formattedPayslips = slips.map(
-      (slip) =>
-        formatPayslip(
-          slip,
-          employeeMap[
-            String(slip.employeeId)
-          ]
-        )
+    const formattedPayslips = slips.map((slip) =>
+      formatPayslip(
+        slip,
+        employeeMap[String(slip.employeeId)]
+      )
     );
 
     return NextResponse.json({
@@ -163,6 +161,8 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
+    const { id } = await params;
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -178,7 +178,7 @@ export async function PATCH(request, { params }) {
     const action = body.action;
 
     const run = await PayrollRun.findOne({
-      _id: params.id,
+      _id: id,
       companyId: user.companyId,
     });
 
@@ -222,8 +222,8 @@ export async function PATCH(request, { params }) {
       await run.save();
 
       /*
-       * Audit log is optional. If your AuditLog model
-       * exists, create the record.
+       * Audit log is optional.
+       * If your AuditLog model exists, create the record.
        */
       if (AuditLog) {
         try {
@@ -289,6 +289,8 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const { id } = await params;
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -301,7 +303,7 @@ export async function DELETE(request, { params }) {
     await connectDB();
 
     const run = await PayrollRun.findOne({
-      _id: params.id,
+      _id: id,
       companyId: user.companyId,
     });
 

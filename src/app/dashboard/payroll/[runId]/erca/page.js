@@ -1,9 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatETB } from '@/lib/payrollCalc';
 import { sanitizeCSVCell } from '@/lib/sanitize';
+import {
+  ArrowLeft,
+  Download,
+  Receipt,
+  Building2,
+  Users,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  Search,
+  FileCheck2,
+  Landmark,
+} from 'lucide-react';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -19,6 +33,7 @@ export default function ErcaReportPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!runId) return;
@@ -28,16 +43,11 @@ export default function ErcaReportPage() {
         setLoading(true);
         setError('');
 
-        const response = await fetch(
-          `/api/payroll/${runId}/erca`
-        );
-
+        const response = await fetch(`/api/payroll/${runId}/erca`);
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            data.error || 'Failed to load ERCA report'
-          );
+          throw new Error(data.error || 'Failed to load ERCA report');
         }
 
         setRun(data.run);
@@ -54,6 +64,33 @@ export default function ErcaReportPage() {
     load();
   }, [runId]);
 
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      const name = r.employee?.full_name?.toLowerCase() || '';
+      const tin = r.employee?.tin?.toLowerCase() || '';
+      const code = r.employee?.employee_code?.toLowerCase() || '';
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || tin.includes(query) || code.includes(query);
+    });
+  }, [rows, searchQuery]);
+
+  const totals = useMemo(() => {
+    return rows.reduce(
+      (acc, r) => ({
+        taxable: acc.taxable + Number(r.taxable_income || 0),
+        tax: acc.tax + Number(r.income_tax || 0),
+        pensionEmp: acc.pensionEmp + Number(r.pension_employee || 0),
+        pensionEmployer: acc.pensionEmployer + Number(r.pension_employer || 0),
+      }),
+      {
+        taxable: 0,
+        tax: 0,
+        pensionEmp: 0,
+        pensionEmployer: 0,
+      }
+    );
+  }, [rows]);
+
   function handleExportCSV() {
     const header = [
       'Employee Code',
@@ -61,8 +98,8 @@ export default function ErcaReportPage() {
       'TIN',
       'Taxable Income',
       'Income Tax',
-      'Pension Employee',
-      'Pension Employer',
+      'Pension Employee (7%)',
+      'Pension Employer (11%)',
     ];
 
     const lines = rows.map((r) => [
@@ -76,297 +113,261 @@ export default function ErcaReportPage() {
     ]);
 
     const csv = [header, ...lines]
-      .map((row) =>
-        row.map(csvEscape).join(',')
-      )
+      .map((row) => row.map(csvEscape).join(','))
       .join('\n');
 
-    const blob = new Blob(
-      [csv],
-      { type: 'text/csv;charset=utf-8;' }
-    );
-
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
-
-    a.download =
-      `erca-report-${run.period_year}-${String(
-        run.period_month
-      ).padStart(2, '0')}.csv`;
-
+    a.download = `erca-declaration-${run.period_year}-${String(run.period_month).padStart(2, '0')}.csv`;
     a.click();
-
     URL.revokeObjectURL(url);
   }
 
   if (loading) {
     return (
-      <p
-        className="font-num"
-        style={{ color: '#6b6355' }}
-      >
-        Loading…
-      </p>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-gray-500 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <p className="text-sm font-medium text-gray-600">Compiling ERCA tax schedule...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div>
-        <p
-          className="field-error"
-          style={{ marginBottom: 16 }}
-        >
-          {error}
-        </p>
-
+      <div className="p-6 max-w-lg mx-auto text-center py-20">
+        <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-bold text-gray-900">Failed to Load Declaration</h3>
+        <p className="text-xs text-gray-500 mt-1 mb-6">{error}</p>
         <button
-          className="btn btn-secondary"
           onClick={() => router.back()}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
         >
-          Back
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Go Back
         </button>
       </div>
     );
   }
 
-  if (!run) {
-    return (
-      <p
-        className="font-num"
-        style={{ color: '#6b6355' }}
-      >
-        Payroll run not found.
-      </p>
-    );
-  }
-
-  const totals = rows.reduce(
-    (acc, r) => ({
-      taxable:
-        acc.taxable + Number(r.taxable_income || 0),
-
-      tax:
-        acc.tax + Number(r.income_tax || 0),
-
-      pensionEmp:
-        acc.pensionEmp +
-        Number(r.pension_employee || 0),
-
-      pensionEmployer:
-        acc.pensionEmployer +
-        Number(r.pension_employer || 0),
-    }),
-    {
-      taxable: 0,
-      tax: 0,
-      pensionEmp: 0,
-      pensionEmployer: 0,
-    }
-  );
+  if (!run) return null;
 
   return (
-    <div>
-      <div className="page-header">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="page-eyebrow">
-            ERCA report
-          </span>
-
-          <h1>
-            {MONTH_NAMES[run.period_month - 1]}{' '}
-            {run.period_year}
+          <Link
+            href={`/dashboard/payroll/${runId}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to Payroll Run
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">
+            ERCA Tax Declaration — {MONTH_NAMES[run.period_month - 1]} {run.period_year}
           </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Statutory income tax withholdings and civil/private pension declaration schedule[cite: 19].
+          </p>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 10,
-          }}
-        >
+        <div className="flex items-center gap-2.5">
           <button
-            className="btn btn-secondary"
             onClick={() => router.back()}
+            className="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition-colors"
           >
             Back
           </button>
-
           <button
-            className="btn btn-primary"
             onClick={handleExportCSV}
+            disabled={rows.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm hover:shadow transition-all disabled:opacity-50"
           >
+            <Download className="w-4 h-4" />
             Export CSV
           </button>
         </div>
       </div>
 
-      {/* Filing summary */}
-
-      <div
-        className="card"
-        style={{ marginBottom: 20 }}
-      >
-        <h2 className="card-title">
-          Filing summary
-        </h2>
-
-        <p
-          style={{
-            fontSize: 13,
-            color: '#6b6355',
-            marginBottom: 16,
-          }}
-        >
-          {company?.name} · TIN:{' '}
-          {company?.tin || '—'} · This summary reflects
-          the payroll calculations recorded in
-          EthioPayroll for this period. Verify figures
-          against the current ERCA directive before
-          filing.
-        </p>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: 16,
-          }}
-        >
-          <div className="stat-tile">
-            <span className="stat-label">
-              Total taxable income
-            </span>
-
-            <span
-              className="stat-value"
-              style={{ fontSize: 18 }}
-            >
-              {formatETB(totals.taxable)}
-            </span>
+      {/* Entity Credentials Banner */}
+      <div className="bg-emerald-900 text-white rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 flex-shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold">{company?.name || 'Registered Organization'}</h2>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-emerald-200 mt-0.5">
+                <span className="font-mono">TIN: {company?.tin || 'Not Provided'}</span>
+                <span>•</span>
+                <span>Ethiopian Ministry of Revenues Format</span>
+              </div>
+            </div>
           </div>
-
-          <div className="stat-tile">
-            <span className="stat-label">
-              Total income tax due
-            </span>
-
-            <span
-              className="stat-value"
-              style={{ fontSize: 18 }}
-            >
-              {formatETB(totals.tax)}
-            </span>
-          </div>
-
-          <div className="stat-tile">
-            <span className="stat-label">
-              Pension (employee 7%)
-            </span>
-
-            <span
-              className="stat-value"
-              style={{ fontSize: 18 }}
-            >
-              {formatETB(totals.pensionEmp)}
-            </span>
-          </div>
-
-          <div className="stat-tile">
-            <span className="stat-label">
-              Pension (employer 11%)
-            </span>
-
-            <span
-              className="stat-value"
-              style={{ fontSize: 18 }}
-            >
-              {formatETB(
-                totals.pensionEmployer
-              )}
-            </span>
+          <div className="flex items-center gap-2 text-xs text-emerald-200/90 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+            <ShieldCheck className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+            <span>Verify calculated values against current ERCA directives prior to monthly submission[cite: 19].</span>
           </div>
         </div>
       </div>
 
-      {/* Per employee */}
-
-      <div className="card">
-        <h2 className="card-title">
-          Per-employee breakdown
-        </h2>
-
-        <div className="table-scroll">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>TIN</th>
-                <th>Taxable income</th>
-                <th>Income tax</th>
-                <th>Pension (7%)</th>
-                <th>Pension (11%)</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    {r.employee?.full_name}
-                  </td>
-
-                  <td className="font-num">
-                    {r.employee?.tin || '—'}
-                  </td>
-
-                  <td className="font-num">
-                    {formatETB(
-                      r.taxable_income
-                    )}
-                  </td>
-
-                  <td className="font-num">
-                    {formatETB(
-                      r.income_tax
-                    )}
-                  </td>
-
-                  <td className="font-num">
-                    {formatETB(
-                      r.pension_employee
-                    )}
-                  </td>
-
-                  <td className="font-num">
-                    {formatETB(
-                      r.pension_employer
-                    )}
-                  </td>
-                </tr>
-              ))}
-
-              {rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="6"
-                    style={{
-                      textAlign: 'center',
-                      padding: 24,
-                      color: '#6b6355',
-                    }}
-                  >
-                    No payslips found for this
-                    payroll run.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Taxable Basis
+            </span>
+            <div className="mt-1.5">
+              <h3 className="text-xl font-bold text-gray-900">{formatETB(totals.taxable)}</h3>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Assessable staff payroll</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
+            <Receipt className="w-5 h-5" />
+          </div>
         </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Income Tax Due
+            </span>
+            <div className="mt-1.5">
+              <h3 className="text-xl font-bold text-gray-900">{formatETB(totals.tax)}</h3>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Payable to ERCA accounts</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+            <Landmark className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Pension (Staff 7%)
+            </span>
+            <div className="mt-1.5">
+              <h3 className="text-xl font-bold text-gray-900">{formatETB(totals.pensionEmp)}</h3>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Employee statutory share</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Pension (Employer 11%)
+            </span>
+            <div className="mt-1.5">
+              <h3 className="text-xl font-bold text-gray-900">{formatETB(totals.pensionEmployer)}</h3>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Company statutory share</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <FileCheck2 className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tax Table */}
+      <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+        {/* Search */}
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-50/50">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search by name, employee code, or TIN..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full text-xs pl-9 pr-3.5 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-colors"
+            />
+          </div>
+
+          <span className="text-xs text-gray-500 font-medium">
+            Showing <strong className="text-gray-900">{filteredRows.length}</strong> of {rows.length} Listed Payees
+          </span>
+        </div>
+
+        {filteredRows.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <Receipt className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">No matching records</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              {searchQuery ? 'Adjust your search terms to find records.' : 'No payslips logged for this run[cite: 19].'}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs divide-y divide-gray-100">
+              <thead>
+                <tr className="bg-gray-50/75 text-gray-500 font-semibold uppercase tracking-wider">
+                  <th className="py-3.5 px-5">Employee</th>
+                  <th className="py-3.5 px-4">TIN Identifier</th>
+                  <th className="py-3.5 px-4">Taxable Income</th>
+                  <th className="py-3.5 px-4">Income Tax (Due)</th>
+                  <th className="py-3.5 px-4">Pension (7%)</th>
+                  <th className="py-3.5 px-5">Pension (11%)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-gray-700">
+                {filteredRows.map((r) => (
+                  <tr key={r.id} className="hover:bg-emerald-50/20 transition-colors">
+                    <td className="py-3.5 px-5 font-semibold text-gray-900">
+                      {r.employee?.full_name}
+                      {r.employee?.employee_code && (
+                        <span className="block text-[11px] font-mono font-normal text-gray-400 mt-0.5">
+                          {r.employee.employee_code}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="py-3.5 px-4 font-mono text-gray-600">
+                      {r.employee?.tin || '—'}
+                    </td>
+
+                    <td className="py-3.5 px-4 font-medium text-gray-900">
+                      {formatETB(r.taxable_income)}
+                    </td>
+
+                    <td className="py-3.5 px-4 font-medium text-amber-700">
+                      {formatETB(r.income_tax)}
+                    </td>
+
+                    <td className="py-3.5 px-4 font-medium text-gray-600">
+                      {formatETB(r.pension_employee)}
+                    </td>
+
+                    <td className="py-3.5 px-5 font-medium text-gray-600">
+                      {formatETB(r.pension_employer)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50/90 font-bold border-t border-gray-200 text-gray-900">
+                <tr>
+                  <td className="py-3.5 px-5" colSpan={2}>Declaration Totals</td>
+                  <td className="py-3.5 px-4">{formatETB(totals.taxable)}</td>
+                  <td className="py-3.5 px-4 text-amber-700">{formatETB(totals.tax)}</td>
+                  <td className="py-3.5 px-4">{formatETB(totals.pensionEmp)}</td>
+                  <td className="py-3.5 px-5">{formatETB(totals.pensionEmployer)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -374,14 +375,8 @@ export default function ErcaReportPage() {
 
 function csvEscape(value) {
   const str = sanitizeCSVCell(value ?? '');
-
-  if (
-    str.includes(',') ||
-    str.includes('"') ||
-    str.includes('\n')
-  ) {
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
-
   return str;
 }

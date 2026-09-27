@@ -96,10 +96,10 @@ const employeeSchema = new mongoose.Schema(
     },
 
     status: {
-      type: String,
-      enum: ['active', 'inactive', 'terminated'],
-      default: 'active',
-    },
+  type: String,
+  enum: ['active', 'on_leave', 'inactive', 'terminated'],
+  default: 'active',
+},
   },
   {
     timestamps: true,

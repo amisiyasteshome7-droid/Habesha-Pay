@@ -1,160 +1,561 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { sanitizeEmail } from '@/lib/sanitize';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
+  FileSpreadsheet,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
+
+/* --- Miniature Ethiopian 200 Birr Banknote Vector --- */
+function Birr200Note({ width = 42, height = 24, rotation = 0, opacity = 1 }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 100 56"
+      style={{
+        transform: `rotate(${rotation}deg)`,
+        opacity,
+        filter: 'drop-shadow(1px 2px 2px rgba(40, 20, 10, 0.2))',
+        flexShrink: 0,
+        display: 'inline-block',
+      }}
+    >
+      <rect
+        x="1.5"
+        y="1.5"
+        width="97"
+        height="53"
+        rx="3.5"
+        fill="#c85a32"
+        stroke="#2a160d"
+        strokeWidth="2.5"
+      />
+      <rect
+        x="5"
+        y="5"
+        width="90"
+        height="46"
+        rx="2"
+        fill="#d9744b"
+        stroke="#5a220f"
+        strokeWidth="1"
+        strokeDasharray="2.5 1.5"
+      />
+      <circle cx="50" cy="28" r="14" fill="#be4d25" stroke="#f6c28b" strokeWidth="1.2" />
+      <circle cx="50" cy="28" r="8" fill="#e2855a" opacity="0.8" />
+      <text
+        x="12"
+        y="22"
+        fill="#fff8ee"
+        fontSize="13"
+        fontWeight="900"
+        fontFamily="sans-serif"
+        letterSpacing="-0.5"
+      >
+        200
+      </text>
+      <text
+        x="69"
+        y="21"
+        fill="#fbe5cf"
+        fontSize="10"
+        fontWeight="bold"
+        fontFamily="sans-serif"
+      >
+        ፪፻
+      </text>
+      <text
+        x="68"
+        y="45"
+        fill="#fff8ee"
+        fontSize="11"
+        fontWeight="900"
+        fontFamily="sans-serif"
+      >
+        ብር
+      </text>
+      <line x1="28" y1="5" x2="28" y2="51" stroke="#872b12" strokeWidth="2" strokeDasharray="3 2" />
+      <text
+        x="10"
+        y="44"
+        fill="#f6c28b"
+        fontSize="7"
+        fontWeight="800"
+        fontFamily="sans-serif"
+      >
+        ETB
+      </text>
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Quick Demo Auto-Fill helper
+  function handleFillDemo() {
+    setEmail('admin@habeshapay.com');
+    setPassword('Payroll#2026');
+    setError('');
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-
-    const cleanEmail = sanitizeEmail(email);
-
-    if (!cleanEmail) {
-      setError('Enter a valid email address.');
-      return;
-    }
-
-    if (!password) {
-      setError('Enter your password.');
-      return;
-    }
-
     setLoading(true);
 
-    const result = await signIn('credentials', {
-      email: cleanEmail,
-      password,
-      redirect: false,
-    });
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-    setLoading(false);
+      if (!res?.ok || res?.error) {
+        throw new Error(res?.error || 'Invalid email or password.');
+      }
 
-    if (!result || result.error) {
-      // Keep the same generic error behavior as the original login.
-      setError('Incorrect email or password.');
-      return;
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err) {
+      setError(err.message || 'Unable to sign in. Please verify your credentials.');
+    } finally {
+      setLoading(false);
     }
-
-    router.push('/dashboard');
-    router.refresh();
   }
 
   return (
     <div
       style={{
         minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+        backgroundColor: '#eef4ef',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--parchment)',
-        padding: 24,
+        padding: '36px 16px',
+        color: '#1a3325',
+        fontFamily: 'inherit',
       }}
     >
-      <div style={{ width: '100%', maxWidth: 380 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link
-            href="/"
-            className="font-display"
+      {/* Background Radial Glows */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '-8%',
+          right: '-8%',
+          width: '520px',
+          height: '520px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(198,224,204,0.45) 55%, transparent 70%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          bottom: '-10%',
+          left: '-6%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(162,207,174,0.3) 0%, transparent 65%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Floating 200 Birr Banknotes */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '20%',
+          right: '8%',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      >
+        <Birr200Note width={64} height={36} rotation={-14} opacity={0.7} />
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          bottom: '22%',
+          left: '7%',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      >
+        <Birr200Note width={68} height={38} rotation={18} opacity={0.75} />
+      </div>
+
+      {/* Main Voucher Card */}
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 410 }}>
+        {/* Brand Header */}
+        <div style={{ textAlign: 'center', marginBottom: 18 }}>
+          <div
             style={{
-              fontSize: 24,
-              color: 'var(--ink)',
-              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
             }}
           >
-            EthioPayroll
-          </Link>
+            <Birr200Note width={36} height={20} rotation={-6} />
+            <h1
+              style={{
+                fontSize: 'clamp(1.7rem, 4.5vw, 2.2rem)',
+                fontWeight: 900,
+                letterSpacing: '0.5px',
+                margin: 0,
+                color: '#142c1f',
+              }}
+            >
+              <span style={{ color: '#2d6a4f' }}>ETHIO</span>-PAYROLL
+            </h1>
+            <Birr200Note width={36} height={20} rotation={6} />
+          </div>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#446653', margin: '4px 0 0' }}>
+            Workforce Portal & Salary Ledger
+          </p>
         </div>
 
-        <div className="card">
-          <h1 style={{ fontSize: 20, marginBottom: 4 }}>Log in</h1>
-
-          <p
+        {/* Voucher / Receipt Card Container */}
+        <div
+          style={{
+            width: '100%',
+            background: '#ffffff',
+            borderRadius: 14,
+            border: '2.5px solid #142c1f',
+            boxShadow: '5px 5px 0px #142c1f',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Top Perforated Slip Header with Live Cycle Status */}
+          <div
             style={{
-              fontSize: 13,
-              color: '#6b6355',
-              marginBottom: 24,
+              background: '#e4eee6',
+              padding: '10px 18px',
+              borderBottom: '2px dashed #142c1f',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            Enter your company account credentials.
-          </p>
-
-          <form onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="email">Email</label>
-
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#1a3d2c' }}>
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-800" />
+              <span>ENTRY VOUCHER #2026</span>
             </div>
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1.5px solid #142c1f',
+                borderRadius: 4,
+                padding: '2px 8px',
+                fontSize: 10,
+                fontWeight: 900,
+                color: '#1a3d2c',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              ERCA VERIFIED
+            </div>
+          </div>
 
-            <div className="field">
-              <label htmlFor="password">Password</label>
+          <div style={{ padding: '22px 22px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <h2
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 900,
+                    margin: 0,
+                    color: '#142c1f',
+                    letterSpacing: '-0.3px',
+                  }}
+                >
+                  Sign In to Account
+                </h2>
+                <p style={{ fontSize: 12, color: '#577564', margin: '3px 0 0', fontWeight: 500 }}>
+                  Enter your corporate administrator credentials.
+                </p>
+              </div>
 
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              {/* Interactive Demo Chip */}
+              <button
+                type="button"
+                onClick={handleFillDemo}
+                title="Fill credentials for testing"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 8px',
+                  background: '#fef3c7',
+                  border: '1.5px solid #d97706',
+                  borderRadius: 6,
+                  color: '#92400e',
+                  fontSize: 10,
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                <span>Demo Fill</span>
+              </button>
             </div>
 
             {error && (
-              <p
-                className="field-error"
-                style={{ marginBottom: 16 }}
+              <div
+                style={{
+                  marginBottom: 14,
+                  padding: '9px 12px',
+                  borderRadius: 6,
+                  background: '#ffebe6',
+                  border: '1.5px solid #b02a1e',
+                  color: '#b02a1e',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
-                {error}
-              </p>
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
             )}
 
-            <button
-              type="submit"
-              className="btn btn-primary"
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+              {/* Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    color: '#1a3d2c',
+                    marginBottom: 5,
+                  }}
+                >
+                  Work Email Address
+                </label>
+                <div style={inputContainerStyle}>
+                  <Mail className="w-4 h-4" style={{ color: '#446653', flexShrink: 0 }} />
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={inputFieldStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label
+                  htmlFor="password"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    color: '#1a3d2c',
+                    marginBottom: 5,
+                  }}
+                >
+                  Password
+                </label>
+                <div
+                  style={{
+                    ...inputContainerStyle,
+                    borderColor: password ? '#2d6a4f' : '#142c1f',
+                  }}
+                >
+                  <Lock className="w-4 h-4" style={{ color: '#446653', flexShrink: 0 }} />
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={inputFieldStyle}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0 4px',
+                      color: '#446653',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  marginTop: 4,
+                  padding: '12px',
+                  borderRadius: 6,
+                  border: '2px solid #142c1f',
+                  backgroundColor: '#235940',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: 14,
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: '3px 3px 0px #142c1f',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>AUTHENTICATING…</span>
+                  </>
+                ) : (
+                  <span>AUTHENTICATE & ENTER →</span>
+                )}
+              </button>
+            </form>
+
+            {/* Bottom Ledger Note */}
+            <div
               style={{
-                width: '100%',
-                justifyContent: 'center',
+                marginTop: 16,
+                paddingTop: 12,
+                borderTop: '1.5px dashed #d5e0d7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 12,
+                fontWeight: 700,
               }}
-              disabled={loading}
             >
-              {loading ? 'Logging in…' : 'Log in'}
-            </button>
-          </form>
+              <span style={{ color: '#577564' }}>New organization?</span>
+              <Link
+                href="/signup"
+                style={{
+                  color: '#235940',
+                  textDecoration: 'none',
+                  borderBottom: '1.5px solid #235940',
+                  fontWeight: 900,
+                }}
+              >
+                Create Workspace
+              </Link>
+            </div>
+          </div>
+
+          {/* Interactive Fiscal Stamp Bar (Replaces static footer) */}
+          <div
+            style={{
+              background: '#f4f8f5',
+              padding: '8px 18px',
+              borderTop: '1.5px solid #d5e0d7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: 10.5,
+              fontWeight: 800,
+              color: '#345e46',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+              <span>System: 7% / 11% Pension Engine Online</span>
+            </div>
+            <span style={{ fontFamily: 'monospace', fontWeight: 900, opacity: 0.85 }}>ETB · ብር</span>
+          </div>
         </div>
 
-        <p
+        {/* Minimal Copyright */}
+        <div
           style={{
+            marginTop: 18,
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#557563',
             textAlign: 'center',
-            fontSize: 13,
-            color: '#6b6355',
-            marginTop: 20,
           }}
         >
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/signup"
-            style={{ color: 'var(--forest)' }}
-          >
-            Create one
-          </Link>
-        </p>
+          © EthioPayroll 2026 • Secure Payroll Ledger
+        </div>
       </div>
     </div>
   );
 }
+
+const inputContainerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  background: '#fafcfa',
+  border: '2px solid #142c1f',
+  borderRadius: 6,
+  padding: '0 10px',
+  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)',
+  gap: 8,
+};
+
+const inputFieldStyle = {
+  flex: 1,
+  border: 'none',
+  outline: 'none',
+  padding: '11px 4px',
+  fontSize: 13,
+  fontWeight: 600,
+  fontFamily: 'inherit',
+  background: 'transparent',
+  color: '#142c1f',
+};

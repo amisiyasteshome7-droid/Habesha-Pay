@@ -21,12 +21,19 @@ const payrollRunSchema = new mongoose.Schema(
       max: 12,
     },
 
-    status: {
-      type: String,
-      enum: ['draft', 'processing', 'completed', 'approved', 'cancelled'],
-      default: 'draft',
-    },
-
+   status: {
+  type: String,
+  enum: [
+    'draft',
+    'processing',
+    'completed',
+    'finalized',
+    'paid',
+    'approved',
+    'cancelled',
+  ],
+  default: 'draft',
+},
     totalGross: {
       type: Number,
       default: 0,
