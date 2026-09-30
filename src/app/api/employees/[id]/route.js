@@ -97,7 +97,7 @@ export async function GET(request, { params }) {
         payroll_run_id: slip.payrollRunId?.toString(),
 
         gross_salary: slip.grossSalary || 0,
-        net_pay: slip.netPay || 0,
+        net_pay: slip.netSalary || 0,
 
         period_month: slip.periodMonth,
         period_year: slip.periodYear,

@@ -95,17 +95,32 @@ export async function GET(request, { params }) {
       );
 
       return {
-        ...slip,
-        id: String(slip._id),
+  id: String(slip._id),
 
-        payroll_runs: payrollRun
-          ? {
-              period_month: payrollRun.periodMonth,
-              period_year: payrollRun.periodYear,
-              status: payrollRun.status,
-            }
-          : null,
-      };
+  basic_salary: slip.basicSalary || 0,
+  transport_allowance: slip.transportAllowance || 0,
+  housing_allowance: slip.housingAllowance || 0,
+  other_allowance: slip.otherAllowance || 0,
+  overtime_pay: slip.overtimePay || 0,
+
+  gross_salary: slip.grossSalary || 0,
+  taxable_income: slip.taxableIncome || 0,
+
+  income_tax: slip.incomeTax || 0,
+  pension_employee: slip.pensionEmployee || 0,
+  pension_employer: slip.pensionEmployer || 0,
+  other_deductions: slip.otherDeductions || 0,
+
+  net_pay: slip.netSalary || 0,
+
+  payroll_runs: payrollRun
+    ? {
+        period_month: payrollRun.periodMonth,
+        period_year: payrollRun.periodYear,
+        status: payrollRun.status,
+      }
+    : null,
+};
     });
 
     // Get leave requests

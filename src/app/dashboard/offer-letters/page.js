@@ -432,10 +432,10 @@ Human Resources Department`;
         <div className="lg:col-span-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
           <div className="flex items-center gap-2 pb-4 mb-4 border-b border-gray-100">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+          
             </div>
             <div>
-              <h2 className="text-sm font-bold text-gray-900">Generate Offer Letter</h2>
+              <h2 className="text-sm font-bold text-gray-900">Offer Letter</h2>
               <p className="text-xs text-gray-500">Configure appointment terms and compensation</p>
             </div>
           </div>
