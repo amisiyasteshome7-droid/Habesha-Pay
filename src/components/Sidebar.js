@@ -13,13 +13,11 @@ import {
   Clock,
   CalendarCheck,
   FileSpreadsheet,
-  FileText,
   ShieldCheck,
   Settings,
   LogOut,
   X,
   Building2,
-  Sparkles,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -27,7 +25,7 @@ const NAV_ITEMS = [
     category: 'Core Operations',
     links: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/dashboard/payroll', label: 'Payroll Runs', icon: PlayCircle },
+      { href: '/dashboard/payroll', label: 'Payroll Runs', icon: PlayCircle},
       { href: '/dashboard/employees', label: 'Employees', icon: Users },
       { href: '/dashboard/contractors', label: 'Contractors', icon: Briefcase },
     ],
@@ -35,13 +33,13 @@ const NAV_ITEMS = [
   {
     category: 'HR & Time',
     links: [
-      { href: '/dashboard/leave', label: 'Leave', icon: CalendarCheck },
+      { href: '/dashboard/leave', label: 'Leave Tracking', icon: CalendarCheck },
       { href: '/dashboard/overtime', label: 'Overtime', icon: Clock },
       { href: '/dashboard/offer-letters', label: 'Offer Letters', icon: FileCheck2 },
     ],
   },
   {
-    category: 'Finance & Compliance',
+    category: 'Compliance & Control',
     links: [
       { href: '/dashboard/reports', label: 'Statutory Reports', icon: FileSpreadsheet },
       { href: '/dashboard/team', label: 'Access Control', icon: ShieldCheck },
@@ -58,60 +56,69 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
     await signOut({ callbackUrl: '/login' });
   };
 
+  const getInitials = (name) => {
+    if (!name) return 'HP';
+    const parts = name.trim().split(' ');
+    return parts.length > 1
+      ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+  };
+
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Dimmer */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs transition-opacity lg:hidden"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Shell */}
+      {/* Main Sidebar */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex w-72 flex-col bg-emerald-950 text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex w-64 flex-col bg-zinc-950 text-zinc-200 border-r border-zinc-800/80 transition-transform duration-200 ease-out lg:static lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Workspace Brand Header */}
-        <div className="flex h-20 items-center justify-between px-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-emerald-950 font-black shadow-md shadow-emerald-500/20">
-              <Sparkles className="w-5 h-5 fill-emerald-950" />
+        {/* Brand / Organization Header */}
+        <div className="flex h-16 items-center justify-between px-4 border-b border-zinc-800/80 bg-zinc-900/30">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm select-none">
+              HP
             </div>
-            <div>
-              <span className="font-extrabold text-base tracking-tight text-white block">
+            
+            <div className="min-w-0">
+              <span className="font-semibold text-sm text-zinc-100 block tracking-tight leading-none">
                 Habesha Pay
               </span>
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-300/80">
-                <Building2 className="w-3 h-3 text-emerald-400" />
-                <span className="truncate max-w-[140px] font-medium">
+              <div className="flex items-center gap-1.5 mt-1 text-[11px] text-zinc-400">
+                <Building2 className="w-3 h-3 text-zinc-500 shrink-0" />
+                <span className="truncate max-w-[120px] font-mono">
                   {company?.name || 'Workspace'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Close button for Mobile Drawer */}
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-emerald-300/70 hover:text-white hover:bg-white/10 lg:hidden transition-colors"
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 lg:hidden transition-colors"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Navigation Sections */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        {/* Navigation Body */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           {NAV_ITEMS.map((section) => (
             <div key={section.category}>
-              <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-400/60 block mb-2">
+              <div className="px-2 pb-1.5 text-[10px] font-mono font-medium uppercase tracking-wider text-zinc-500">
                 {section.category}
-              </span>
+              </div>
+              
               <nav className="space-y-1">
                 {section.links.map((item) => {
                   const Icon = item.icon;
@@ -125,20 +132,28 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
                       key={item.href}
                       href={item.href}
                       onClick={onClose}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      className={`group flex items-center justify-between px-2.5 py-2 rounded-md text-xs font-medium transition-all ${
                         isActive
-                          ? 'bg-emerald-500 text-emerald-950 shadow-md shadow-emerald-500/10 font-bold'
-                          : 'text-emerald-100/70 hover:text-white hover:bg-white/5'
+                          ? 'bg-zinc-900 text-emerald-400 border border-emerald-500/30 shadow-xs'
+                          : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60'
                       }`}
                     >
-                      <Icon
-                        className={`w-4 h-4 flex-shrink-0 transition-transform ${
-                          isActive
-                            ? 'text-emerald-950 scale-105'
-                            : 'text-emerald-400 group-hover:scale-105'
-                        }`}
-                      />
-                      <span>{item.label}</span>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon
+                          className={`w-4 h-4 shrink-0 transition-colors ${
+                            isActive
+                              ? 'text-emerald-400'
+                              : 'text-zinc-500 group-hover:text-zinc-300'
+                          }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+
+                      {item.badge && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -148,17 +163,17 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
         </div>
 
         {/* User Card & Logout Footer */}
-        <div className="p-4 border-t border-white/10 bg-black/10">
-          <div className="flex items-center justify-between p-2 rounded-2xl bg-white/5 border border-white/5">
+        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950">
+          <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/50 border border-zinc-800/70">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
-                {user?.name ? user.name.slice(0, 2).toUpperCase() : 'HP'}
+              <div className="w-8 h-8 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-200 font-mono font-bold flex items-center justify-center text-xs shrink-0">
+                {getInitials(user?.name)}
               </div>
-              <div className="truncate">
-                <p className="text-xs font-semibold text-white truncate">
+              <div className="min-w-0 leading-tight">
+                <p className="text-xs font-medium text-zinc-200 truncate">
                   {user?.name || 'Account'}
                 </p>
-                <span className="text-[10px] uppercase font-mono text-emerald-300/80 block">
+                <span className="text-[10px] font-mono uppercase text-emerald-500/80 block truncate">
                   {role || 'Admin'}
                 </span>
               </div>
@@ -166,7 +181,7 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
 
             <button
               onClick={handleSignOut}
-              className="p-2 rounded-xl text-emerald-200/70 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/40 transition-colors"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />

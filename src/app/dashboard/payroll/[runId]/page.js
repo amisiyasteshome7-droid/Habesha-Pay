@@ -271,7 +271,7 @@ export default function PayrollRunDetailPage() {
             {getStatusBadge(run.status)}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
-            Review disbursements, check ERCA filings, and manage individual payslips[cite: 18].
+            Review disbursements, check ERCA filings, and manage individual payslips
           </p>
         </div>
 

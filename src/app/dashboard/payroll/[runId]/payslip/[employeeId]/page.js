@@ -339,7 +339,7 @@ export default function PayslipPage() {
               Net Payable Take-Home
             </span>
             <p className="text-[11px] text-emerald-100/80 mt-0.5">
-              Net credit deposited directly into declared employee bank account[cite: 13, 20].
+              Net credit deposited directly into declared employee bank account
             </p>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -354,9 +354,9 @@ export default function PayslipPage() {
             <strong className="text-gray-600">
               {formatETB(payslip.pension_employer)}
             </strong>{' '}
-            (Paid on your behalf, not deducted from gross salary)[cite: 20].
+            (Paid on your behalf, not deducted from gross salary)
           </span>
-          <span className="font-mono">Generated via Habesha Pay</span>
+      
         </div>
       </div>
 

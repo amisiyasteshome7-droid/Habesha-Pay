@@ -171,7 +171,7 @@ export default function ErcaReportPage() {
             ERCA Tax Declaration — {MONTH_NAMES[run.period_month - 1]} {run.period_year}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Statutory income tax withholdings and civil/private pension declaration schedule[cite: 19].
+            Statutory income tax withholdings and civil/private pension declaration schedule
           </p>
         </div>
 
@@ -211,7 +211,7 @@ export default function ErcaReportPage() {
           </div>
           <div className="flex items-center gap-2 text-xs text-emerald-200/90 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
             <ShieldCheck className="w-4 h-4 text-emerald-300 flex-shrink-0" />
-            <span>Verify calculated values against current ERCA directives prior to monthly submission[cite: 19].</span>
+            <span>Verify calculated values against current ERCA directives prior to monthly submission</span>
           </div>
         </div>
       </div>

@@ -15,9 +15,7 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  FileSpreadsheet,
   Building2,
-  Sparkles,
 } from 'lucide-react';
 
 export default function DashboardOverview() {
@@ -98,10 +96,10 @@ export default function DashboardOverview() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1.5 max-w-xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-emerald-200 border border-white/10 backdrop-blur-sm">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+              <Building2 className="w-3.5 h-3.5 text-emerald-300" />
               Habesha Pay Overview
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Welcome back{firstName ? `, ${firstName}` : ''}
             </h1>
             <p className="text-sm text-emerald-100/80 leading-relaxed">
